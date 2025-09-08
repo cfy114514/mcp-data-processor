@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "data-query-server": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["data_query_server.py"],
+      "description": "数据查询 MCP 服务器，提供用户、产品、订单数据的查询功能"
+    },
+    "remote-sse-server": {
+      "type": "sse",
+      "url": "https://api.example.com/sse",
+      "disabled": true
+    },
+    "remote-http-server": {
+      "type": "http",
+      "url": "https://api.example.com/mcp",
+      "disabled": true
+    }
+  }
+}
