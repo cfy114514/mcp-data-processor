@@ -2,7 +2,7 @@
   "mcpServers": {
     "data-query-server": {
       "type": "stdio",
-      "command": "python",
+      "command": "python3",
       "args": ["data_query_server.py"],
       "description": "数据查询 MCP 服务器，提供用户、产品、订单数据的查询功能"
     },
