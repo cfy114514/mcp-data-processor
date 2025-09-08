@@ -38,13 +38,47 @@ This project implements a data query MCP server with the following features:
 .\start.ps1
 ```
 
-**Linux/Mac Bash:**
+**Linux/Mac 标准脚本 | Linux/Mac Standard Script:**
 ```bash
 chmod +x start.sh
 ./start.sh
 ```
 
-### 方法2: 手动设置 | Method 2: Manual Setup
+**Linux/Mac 简化脚本 | Linux/Mac Simple Script:**
+```bash
+chmod +x start_simple.sh
+./start_simple.sh
+```
+
+### 方法2: 服务器部署 | Method 2: Server Deployment
+
+**自动部署（推荐用于服务器）| Auto Deployment (Recommended for Servers):**
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+**手动部署 | Manual Deployment:**
+参考 `MANUAL_START.md` 文件获取详细步骤。
+
+### 方法3: 系统服务 | Method 3: System Service
+
+**Linux系统服务 | Linux System Service:**
+```bash
+# 1. 编辑服务文件
+sudo cp mcp-server.service /etc/systemd/system/
+sudo nano /etc/systemd/system/mcp-server.service
+
+# 2. 启动服务
+sudo systemctl daemon-reload
+sudo systemctl enable mcp-server
+sudo systemctl start mcp-server
+
+# 3. 查看状态
+sudo systemctl status mcp-server
+```
+
+### 方法4: 手动设置 | Method 4: Manual Setup
 
 1. **安装依赖 | Install dependencies:**
 ```bash
