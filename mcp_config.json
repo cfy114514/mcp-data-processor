@@ -2,9 +2,15 @@
   "mcpServers": {
     "data-query-server": {
       "type": "stdio",
-      "command": "python3",
+      "command": "python",
       "args": ["data_query_server.py"],
       "description": "数据查询 MCP 服务器，提供用户、产品、订单数据的查询功能"
+    },
+    "rivia-memory-journey": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["main_mcp_simulator.py"],
+      "description": "瑞维亚记忆之旅 - 互动式故事游戏，支持对话和场景探索"
     },
     "remote-sse-server": {
       "type": "sse",
