@@ -34,36 +34,37 @@ class GameState:
     def analyze_state_from_history(self):
         """从对话历史中分析当前状态"""
         scene_keywords = {
-            "乡村小镇": ["小镇", "喷泉", "面包房", "灰色衣服的人"],
-            "海边": ["海边", "大海", "海浪", "星星", "阳光"],
-            "雪山": ["雪山", "雪白", "极光", "实验体", "研究员", "白色大衣"]
+            "乡村小镇": ["小镇", "喷泉", "面包房", "灰色衣服的人", "去小镇", "去那里看看"],
+            "海边": ["海边", "大海", "海浪", "星星", "阳光", "去海边", "去大海"],
+            "雪山": ["雪山", "雪白", "极光", "实验体", "研究员", "白色大衣", "去雪山"]
         }
         
         level_keywords = {
             1: ["来过", "想起", "能想起来什么"],
-            2: ["什么人", "什么画面", "试试", "感受"],
+            2: ["什么人", "什么画面", "试试", "感受", "是什么人", "在跟你说话", "在和你说话"],
             3: ["他是什么人", "他在说什么", "什么意思"],
             4: ["然后呢", "他说了什么", "接下来"],
             5: ["这好像不一样", "提取的碎片", "不如别找了"]
         }
         
-        # 分析场景
-        recent_messages = self.conversation_history[-10:]  # 只看最近10条消息
-        detected_scene = "无"
-        detected_level = 0
+        # 分析场景 - 检查所有消息，不只是最近的
+        all_messages = self.conversation_history
+        detected_scene = self.current_scene  # 保持当前场景，除非找到更强的信号
+        detected_level = self.current_level   # 保持当前关卡，除非找到更高的
         
-        for scene, keywords in scene_keywords.items():
-            for msg in recent_messages:
+        # 场景检测 - 优先检查最近的消息
+        for msg in reversed(all_messages[-15:]):  # 检查最近15条消息
+            for scene, keywords in scene_keywords.items():
                 if any(keyword in msg["content"] for keyword in keywords):
                     detected_scene = scene
                     break
             if detected_scene != "无":
                 break
         
-        # 分析关卡
+        # 关卡检测 - 基于问题类型推进
         if detected_scene != "无":
             for level, keywords in level_keywords.items():
-                for msg in recent_messages:
+                for msg in reversed(all_messages[-10:]):  # 检查最近10条消息
                     if any(keyword in msg["content"] for keyword in keywords):
                         detected_level = max(detected_level, level)
         
@@ -315,10 +316,11 @@ class AIMCPManager:
         
         # 默认回复（如果未匹配到任何特定关卡对话）
         default_replies = [
-            "平静，总是让人感到心安。",
-            "我总能感觉到时间的流逝，在那些安静的时刻里。",
-            "天空真美，你说呢？",
-            "很高兴认识你，伙伴。"
+            "我在努力回想着什么…",
+            "风中似乎有熟悉的声音。",
+            "你觉得我们该去哪里呢？",
+            "这片天空让我想起了什么。",
+            "或许答案就在不远的地方。"
         ]
         chosen_reply = random.choice(default_replies)
         logger.info(f"AI（瑞维亚）: {chosen_reply}")
@@ -399,6 +401,14 @@ def _simulate_rivia_response(user_input: str, game_state: GameState) -> str:
     if "来过这个海边" in user_input or ("海边" in user_input and "想起" in user_input):
         return "大海很美，阳光远比洒下的光辉更加耀眼。" if random.randint(1, 100) <= 60 else "我能感受到我并不是第一次来，很熟悉，可是也很陌生。"
     
+    # 海边第2阶段对话
+    if "慢慢来不着急" in user_input or ("一起" in user_input and "做点什么" in user_input):
+        return "听你的就好，我相信你也有自己的见解。" if random.randint(1, 100) <= 60 else "我想就静静的躺在这里，到了晚上说不定还能看见星星，然后感受大海带给我的回忆。"
+    
+    # 海边第3阶段对话  
+    if "好好感受一下大海" in user_input or ("感受" in user_input and "大海" in user_input):
+        return "翻涌的海浪，还有遥远的如同精灵般的呼唤。" if random.randint(1, 100) <= 60 else "海的声音好沉，像在低声说着什么…我好像快抓住那些'消失的记忆'了。"
+    
     if "不如别找了" in user_input:
         if random.randint(1, 100) <= 60:
             return "我们可以找个喜欢的地方，一起开始新的生活？或许这样也不错。[结局：放弃寻找记忆]"
@@ -409,25 +419,37 @@ def _simulate_rivia_response(user_input: str, game_state: GameState) -> str:
     if "来过这个小镇" in user_input or ("小镇" in user_input and "想起" in user_input):
         return "很抱歉我也是第一回来，可惜并没有想起什么。" if random.randint(1, 100) <= 60 else "我想应该是来过的…这巷子里的风，带着面包房的甜香呢…在我的记忆里，有个模糊的身影在和我说话。"
     
+    # 小镇进阶对话
+    if "是什么人在和你说话" in user_input or "是什么人在跟你说话" in user_input:
+        return "记忆很模糊，大概是想不起来了。" if random.randint(1, 100) <= 60 else "是一个穿着灰色衣服的人，他带我来看这个喷泉，我在抬头看他…"
+    
+    if "他在说什么" in user_input:
+        return "啊，头好疼…很抱歉我不能再想了。" if random.randint(1, 100) <= 60 else "他在说，水的流动和时间很像…今天或许明天…"
+    
+    if "然后呢" in user_input:
+        return "他就这样离开了，我看着他的背影…好像时间过了很久很久。" if random.randint(1, 100) <= 60 else "我低头能看见一位女士，可是我好像变高了…我能听见是我在说，去新的地方…有家。"
+    
     if "这好像不一样" in user_input:
         if random.randint(1, 100) <= 60:
             return "如你所说伙伴…在我的大脑里充斥着各种各样的记忆。"
         else:
             return "可这好像并不是我的…我好像什么都记得，又好像什么都记不清…我能感觉得到，时间在流转，而我也跟着一起消散了。[结局：记忆彻底混乱]"
     
-    # 默认回复
-    default_replies = [
-        "平静，总是让人感到心安。",
-        "我总能感觉到时间的流逝，在那些安静的时刻里。",
-        "很高兴认识你，伙伴。",
-        "啊，头好疼。"
-    ]
-    return random.choice(default_replies)
+    # 关怀和安慰回复
+    if any(phrase in user_input for phrase in ["你没事吧", "没关系", "别着急", "慢慢来"]):
+        responses = [
+            "谢谢你的关心，伙伴。",
+            "你真是个温柔的人。",
+            "有你在身边，我感到很安心。"
+        ]
+        return random.choice(responses)
+    
+    # 让智能体自由发挥，不设置默认回复
+    return None
 
 # 全局游戏状态
 game_state = None
 
-# --- MCP 工具函数 ---
 # --- MCP 工具函数 ---
 @mcp.tool()
 def start_journey() -> dict:
@@ -468,6 +490,16 @@ def talk_to_rivia(message: str) -> dict:
         
         # 模拟 AI 响应
         response = _simulate_rivia_response(message.strip(), game_state)
+        
+        # 如果没有匹配的回复，使用一个通用的模糊回复
+        if response is None:
+            vague_responses = [
+                "我似乎听到了什么…",
+                "这让我想起了某些模糊的片段。",
+                "或许我们需要换个地方看看？",
+                "记忆就像雾一样朦胧。"
+            ]
+            response = random.choice(vague_responses)
         
         # 添加 AI 回复到历史
         game_state.add_message("assistant", response)
